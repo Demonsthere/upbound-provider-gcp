@@ -1,21 +1,9 @@
 //go:build generate
 // +build generate
 
-/*
-Copyright 2021 The Crossplane Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: Apache-2.0
 
 // NOTE: See the below link for details on what is happening here.
 // https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
@@ -24,18 +12,16 @@ limitations under the License.
 //go:generate rm -rf ../package/crds
 
 // Remove generated Go files
-//go:generate bash -c "find . -iname 'zz_*' ! -iname 'zz_generated.managed*.go' -delete"
 //go:generate bash -c "find . -type d -empty -delete"
 //go:generate bash -c "find ../internal/controller -iname 'zz_*' -delete"
 //go:generate bash -c "find ../internal/controller -type d -empty -delete"
-//go:generate rm -rf ../examples-generated
 //go:generate bash -c "find ../cmd/provider -name 'zz_*' -type f -delete"
 //go:generate bash -c "find ../cmd/provider -type d -maxdepth 1 -mindepth 1 -empty -delete"
 
 // Scrape metadata from Terraform registry
-//go:generate go run github.com/upbound/upjet/cmd/scraper -n hashicorp/terraform-provider-google -r ../.work/terraform-provider-google/website/docs/r -o ../config/provider-metadata.yaml --prelude-xpath "//text()[contains(., \"subcategory\")]" --resource-prefix google
+//go:generate go run github.com/crossplane/upjet/cmd/scraper -n hashicorp/terraform-provider-google -r ../.work/terraform-provider-google/website/docs/r -o ../config/provider-metadata.yaml --prelude-xpath "//text()[contains(., \"subcategory\")]" --resource-prefix google
 
-// Run Terrajet generator
+// Run upjet generator
 //go:generate go run ../cmd/generator/main.go ..
 
 // Generate deepcopy methodsets and CRD manifests
@@ -44,6 +30,10 @@ limitations under the License.
 // Generate crossplane-runtime methodsets (resource.Claim, etc)
 //go:generate go run -tags generate github.com/crossplane/crossplane-tools/cmd/angryjet generate-methodsets --header-file=../hack/boilerplate.go.txt ./...
 
+// Run upjet's transformer for the generated resolvers to get rid of the cross
+// API-group imports and to prevent import cycles
+//go:generate go run github.com/crossplane/upjet/cmd/resolver -g gcp.upbound.io -a github.com/upbound/provider-gcp/internal/apis -s
+
 package apis
 
 import (
@@ -51,5 +41,5 @@ import (
 
 	_ "github.com/crossplane/crossplane-tools/cmd/angryjet" //nolint:typecheck
 
-	_ "github.com/upbound/upjet/cmd/scraper"
+	_ "github.com/crossplane/upjet/cmd/scraper"
 )

@@ -1,14 +1,17 @@
-/*
-Copyright 2021 Upbound Inc.
-*/
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: Apache-2.0
 
 package controller
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/upbound/upjet/pkg/controller"
+	"github.com/crossplane/upjet/pkg/controller"
 
+	folderbucketconfig "github.com/upbound/provider-gcp/internal/controller/logging/folderbucketconfig"
+	folderexclusion "github.com/upbound/provider-gcp/internal/controller/logging/folderexclusion"
+	foldersink "github.com/upbound/provider-gcp/internal/controller/logging/foldersink"
 	logview "github.com/upbound/provider-gcp/internal/controller/logging/logview"
 	metric "github.com/upbound/provider-gcp/internal/controller/logging/metric"
 	projectbucketconfig "github.com/upbound/provider-gcp/internal/controller/logging/projectbucketconfig"
@@ -20,6 +23,9 @@ import (
 // the supplied manager.
 func Setup_logging(mgr ctrl.Manager, o controller.Options) error {
 	for _, setup := range []func(ctrl.Manager, controller.Options) error{
+		folderbucketconfig.Setup,
+		folderexclusion.Setup,
+		foldersink.Setup,
 		logview.Setup,
 		metric.Setup,
 		projectbucketconfig.Setup,

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 name: Scan
 
 
@@ -40,7 +44,7 @@ jobs:
           echo "We are going to scan the last ${supported_releases_number} releases for: ${images}"
 
   scan:
-    uses: upbound/uptest/.github/workflows/scan.yml@main
+    uses: upbound/official-providers-ci/.github/workflows/scan.yml@standard-runners
     needs:
       - setup-vars
     with:

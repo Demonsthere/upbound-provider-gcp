@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.12.1
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: instancefromtemplates.compute.gcp.upbound.io
 spec:
   group: compute.gcp.upbound.io
@@ -19,11 +19,11 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.conditions[?(@.type=='Ready')].status
-      name: READY
-      type: string
     - jsonPath: .status.conditions[?(@.type=='Synced')].status
       name: SYNCED
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
       type: string
     - jsonPath: .metadata.annotations.crossplane\.io/external-name
       name: EXTERNAL-NAME
@@ -38,14 +38,19 @@ spec:
           API. Manages a VM instance resource within GCE.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -54,13 +59,14 @@ spec:
             properties:
               deletionPolicy:
                 default: Delete
-                description: 'DeletionPolicy specifies what will happen to the underlying
-                  external when this managed resource is deleted - either "Delete"
-                  or "Orphan" the external resource. This field is planned to be deprecated
-                  in favor of the ManagementPolicies field in a future release. Currently,
-                  both could be set independently and non-default values would be
-                  honored if the feature flag is enabled. See the design doc for more
-                  information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223'
+                description: |-
+                  DeletionPolicy specifies what will happen to the underlying external
+                  when this managed resource is deleted - either "Delete" or "Orphan" the
+                  external resource.
+                  This field is planned to be deprecated in favor of the ManagementPolicies
+                  field in a future release. Currently, both could be set independently and
+                  non-default values would be honored if the feature flag is enabled.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
                 enum:
                 - Orphan
                 - Delete
@@ -85,8 +91,9 @@ spec:
                     items:
                       properties:
                         deviceName:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         diskEncryptionKeyRaw:
                           type: string
@@ -107,8 +114,9 @@ spec:
                           description: Default is 6 minutes.
                           type: boolean
                         deviceName:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         diskEncryptionKeyRawSecretRef:
                           description: A SecretKeySelector is a reference to a secret
@@ -131,16 +139,23 @@ spec:
                         initializeParams:
                           items:
                             properties:
+                              enableConfidentialCompute:
+                                type: boolean
                               image:
                                 type: string
                               labels:
                                 additionalProperties:
                                   type: string
                                 type: object
+                              provisionedIops:
+                                type: number
+                              provisionedThroughput:
+                                type: number
                               resourceManagerTags:
                                 additionalProperties:
                                   type: string
                                 type: object
+                                x-kubernetes-map-type: granular
                               size:
                                 type: number
                               type:
@@ -182,13 +197,15 @@ spec:
                       type: object
                     type: array
                   hostname:
-                    description: A unique name for the resource, required by GCE.
+                    description: |-
+                      A unique name for the resource, required by GCE.
                       Changing this forces a new resource to be created.
                     type: string
                   labels:
                     additionalProperties:
                       type: string
                     type: object
+                    x-kubernetes-map-type: granular
                   machineType:
                     type: string
                   metadata:
@@ -200,7 +217,8 @@ spec:
                   minCpuPlatform:
                     type: string
                   name:
-                    description: A unique name for the resource, required by GCE.
+                    description: |-
+                      A unique name for the resource, required by GCE.
                       Changing this forces a new resource to be created.
                     type: string
                   networkInterface:
@@ -214,9 +232,9 @@ spec:
                               networkTier:
                                 type: string
                               publicPtrDomainName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
@@ -226,12 +244,14 @@ spec:
                               ipCidrRange:
                                 type: string
                               subnetworkRangeName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
+                        internalIpv6PrefixLength:
+                          type: number
                         ipv6AccessConfig:
                           items:
                             properties:
@@ -240,25 +260,28 @@ spec:
                               externalIpv6PrefixLength:
                                 type: string
                               name:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                               networkTier:
                                 type: string
                               publicPtrDomainName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
+                        ipv6Address:
+                          type: string
                         network:
                           type: string
                         networkIp:
                           type: string
                         networkRef:
-                          description: Reference to a Network to populate network.
+                          description: Reference to a Network in compute to populate
+                            network.
                           properties:
                             name:
                               description: Name of the referenced object.
@@ -268,22 +291,21 @@ spec:
                               properties:
                                 resolution:
                                   default: Required
-                                  description: Resolution specifies whether resolution
-                                    of this reference is required. The default is
-                                    'Required', which means the reconcile will fail
-                                    if the reference cannot be resolved. 'Optional'
-                                    means this reference will be a no-op if it cannot
-                                    be resolved.
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
                                   enum:
                                   - Required
                                   - Optional
                                   type: string
                                 resolve:
-                                  description: Resolve specifies when this reference
-                                    should be resolved. The default is 'IfNotPresent',
-                                    which will attempt to resolve the reference only
-                                    when the corresponding field is not present. Use
-                                    'Always' to resolve the reference on every reconcile.
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
                                   enum:
                                   - Always
                                   - IfNotPresent
@@ -293,12 +315,13 @@ spec:
                           - name
                           type: object
                         networkSelector:
-                          description: Selector for a Network to populate network.
+                          description: Selector for a Network in compute to populate
+                            network.
                           properties:
                             matchControllerRef:
-                              description: MatchControllerRef ensures an object with
-                                the same controller reference as the selecting object
-                                is selected.
+                              description: |-
+                                MatchControllerRef ensures an object with the same controller reference
+                                as the selecting object is selected.
                               type: boolean
                             matchLabels:
                               additionalProperties:
@@ -311,22 +334,21 @@ spec:
                               properties:
                                 resolution:
                                   default: Required
-                                  description: Resolution specifies whether resolution
-                                    of this reference is required. The default is
-                                    'Required', which means the reconcile will fail
-                                    if the reference cannot be resolved. 'Optional'
-                                    means this reference will be a no-op if it cannot
-                                    be resolved.
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
                                   enum:
                                   - Required
                                   - Optional
                                   type: string
                                 resolve:
-                                  description: Resolve specifies when this reference
-                                    should be resolved. The default is 'IfNotPresent',
-                                    which will attempt to resolve the reference only
-                                    when the corresponding field is not present. Use
-                                    'Always' to resolve the reference on every reconcile.
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
                                   enum:
                                   - Always
                                   - IfNotPresent
@@ -344,7 +366,8 @@ spec:
                         subnetworkProject:
                           type: string
                         subnetworkRef:
-                          description: Reference to a Subnetwork to populate subnetwork.
+                          description: Reference to a Subnetwork in compute to populate
+                            subnetwork.
                           properties:
                             name:
                               description: Name of the referenced object.
@@ -354,22 +377,21 @@ spec:
                               properties:
                                 resolution:
                                   default: Required
-                                  description: Resolution specifies whether resolution
-                                    of this reference is required. The default is
-                                    'Required', which means the reconcile will fail
-                                    if the reference cannot be resolved. 'Optional'
-                                    means this reference will be a no-op if it cannot
-                                    be resolved.
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
                                   enum:
                                   - Required
                                   - Optional
                                   type: string
                                 resolve:
-                                  description: Resolve specifies when this reference
-                                    should be resolved. The default is 'IfNotPresent',
-                                    which will attempt to resolve the reference only
-                                    when the corresponding field is not present. Use
-                                    'Always' to resolve the reference on every reconcile.
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
                                   enum:
                                   - Always
                                   - IfNotPresent
@@ -379,12 +401,13 @@ spec:
                           - name
                           type: object
                         subnetworkSelector:
-                          description: Selector for a Subnetwork to populate subnetwork.
+                          description: Selector for a Subnetwork in compute to populate
+                            subnetwork.
                           properties:
                             matchControllerRef:
-                              description: MatchControllerRef ensures an object with
-                                the same controller reference as the selecting object
-                                is selected.
+                              description: |-
+                                MatchControllerRef ensures an object with the same controller reference
+                                as the selecting object is selected.
                               type: boolean
                             matchLabels:
                               additionalProperties:
@@ -397,22 +420,21 @@ spec:
                               properties:
                                 resolution:
                                   default: Required
-                                  description: Resolution specifies whether resolution
-                                    of this reference is required. The default is
-                                    'Required', which means the reconcile will fail
-                                    if the reference cannot be resolved. 'Optional'
-                                    means this reference will be a no-op if it cannot
-                                    be resolved.
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
                                   enum:
                                   - Required
                                   - Optional
                                   type: string
                                 resolve:
-                                  description: Resolve specifies when this reference
-                                    should be resolved. The default is 'IfNotPresent',
-                                    which will attempt to resolve the reference only
-                                    when the corresponding field is not present. Use
-                                    'Always' to resolve the reference on every reconcile.
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
                                   enum:
                                   - Always
                                   - IfNotPresent
@@ -435,6 +457,7 @@ spec:
                           additionalProperties:
                             type: string
                           type: object
+                          x-kubernetes-map-type: granular
                       type: object
                     type: array
                   project:
@@ -490,6 +513,7 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                                x-kubernetes-list-type: set
                             type: object
                           type: array
                         onHostMaintenance:
@@ -503,6 +527,11 @@ spec:
                   scratchDisk:
                     items:
                       properties:
+                        deviceName:
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
+                          type: string
                         interface:
                           type: string
                         size:
@@ -518,6 +547,7 @@ spec:
                           items:
                             type: string
                           type: array
+                          x-kubernetes-list-type: set
                       type: object
                     type: array
                   shieldedInstanceConfig:
@@ -532,12 +562,14 @@ spec:
                       type: object
                     type: array
                   sourceInstanceTemplate:
-                    description: Name or self link of an instance template to create
-                      the instance based on. It is recommended to reference instance
-                      templates through their unique id (self_link_unique attribute).
+                    description: |-
+                      Name or self link of an instance
+                      template to create the instance based on. It is recommended to reference
+                      instance templates through their unique id (self_link_unique attribute).
                     type: string
                   sourceInstanceTemplateRef:
-                    description: Reference to a InstanceTemplate to populate sourceInstanceTemplate.
+                    description: Reference to a InstanceTemplate in compute to populate
+                      sourceInstanceTemplate.
                     properties:
                       name:
                         description: Name of the referenced object.
@@ -547,21 +579,21 @@ spec:
                         properties:
                           resolution:
                             default: Required
-                            description: Resolution specifies whether resolution of
-                              this reference is required. The default is 'Required',
-                              which means the reconcile will fail if the reference
-                              cannot be resolved. 'Optional' means this reference
-                              will be a no-op if it cannot be resolved.
+                            description: |-
+                              Resolution specifies whether resolution of this reference is required.
+                              The default is 'Required', which means the reconcile will fail if the
+                              reference cannot be resolved. 'Optional' means this reference will be
+                              a no-op if it cannot be resolved.
                             enum:
                             - Required
                             - Optional
                             type: string
                           resolve:
-                            description: Resolve specifies when this reference should
-                              be resolved. The default is 'IfNotPresent', which will
-                              attempt to resolve the reference only when the corresponding
-                              field is not present. Use 'Always' to resolve the reference
-                              on every reconcile.
+                            description: |-
+                              Resolve specifies when this reference should be resolved. The default
+                              is 'IfNotPresent', which will attempt to resolve the reference only when
+                              the corresponding field is not present. Use 'Always' to resolve the
+                              reference on every reconcile.
                             enum:
                             - Always
                             - IfNotPresent
@@ -571,11 +603,13 @@ spec:
                     - name
                     type: object
                   sourceInstanceTemplateSelector:
-                    description: Selector for a InstanceTemplate to populate sourceInstanceTemplate.
+                    description: Selector for a InstanceTemplate in compute to populate
+                      sourceInstanceTemplate.
                     properties:
                       matchControllerRef:
-                        description: MatchControllerRef ensures an object with the
-                          same controller reference as the selecting object is selected.
+                        description: |-
+                          MatchControllerRef ensures an object with the same controller reference
+                          as the selecting object is selected.
                         type: boolean
                       matchLabels:
                         additionalProperties:
@@ -588,21 +622,21 @@ spec:
                         properties:
                           resolution:
                             default: Required
-                            description: Resolution specifies whether resolution of
-                              this reference is required. The default is 'Required',
-                              which means the reconcile will fail if the reference
-                              cannot be resolved. 'Optional' means this reference
-                              will be a no-op if it cannot be resolved.
+                            description: |-
+                              Resolution specifies whether resolution of this reference is required.
+                              The default is 'Required', which means the reconcile will fail if the
+                              reference cannot be resolved. 'Optional' means this reference will be
+                              a no-op if it cannot be resolved.
                             enum:
                             - Required
                             - Optional
                             type: string
                           resolve:
-                            description: Resolve specifies when this reference should
-                              be resolved. The default is 'IfNotPresent', which will
-                              attempt to resolve the reference only when the corresponding
-                              field is not present. Use 'Always' to resolve the reference
-                              on every reconcile.
+                            description: |-
+                              Resolve specifies when this reference should be resolved. The default
+                              is 'IfNotPresent', which will attempt to resolve the reference only when
+                              the corresponding field is not present. Use 'Always' to resolve the
+                              reference on every reconcile.
                             enum:
                             - Always
                             - IfNotPresent
@@ -613,23 +647,25 @@ spec:
                     items:
                       type: string
                     type: array
+                    x-kubernetes-list-type: set
                   zone:
-                    description: The zone that the machine should be created in. If
-                      not set, the provider zone is used.
+                    description: |-
+                      The zone that the machine should be created in. If not
+                      set, the provider zone is used.
                     type: string
                 type: object
               initProvider:
-                description: THIS IS AN ALPHA FIELD. Do not use it in production.
-                  It is not honored unless the relevant Crossplane feature flag is
-                  enabled, and may be changed or removed without notice. InitProvider
-                  holds the same fields as ForProvider, with the exception of Identifier
-                  and other resource reference fields. The fields that are in InitProvider
-                  are merged into ForProvider when the resource is created. The same
-                  fields are also added to the terraform ignore_changes hook, to avoid
-                  updating them after creation. This is useful for fields that are
-                  required on creation, but we do not desire to update them after
-                  creation, for example because of an external controller is managing
-                  them, like an autoscaler.
+                description: |-
+                  THIS IS A BETA FIELD. It will be honored
+                  unless the Management Policies feature flag is disabled.
+                  InitProvider holds the same fields as ForProvider, with the exception
+                  of Identifier and other resource reference fields. The fields that are
+                  in InitProvider are merged into ForProvider when the resource is created.
+                  The same fields are also added to the terraform ignore_changes hook, to
+                  avoid updating them after creation. This is useful for fields that are
+                  required on creation, but we do not desire to update them after creation,
+                  for example because of an external controller is managing them, like an
+                  autoscaler.
                 properties:
                   advancedMachineFeatures:
                     items:
@@ -649,8 +685,9 @@ spec:
                     items:
                       properties:
                         deviceName:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         diskEncryptionKeyRaw:
                           type: string
@@ -671,22 +708,30 @@ spec:
                           description: Default is 6 minutes.
                           type: boolean
                         deviceName:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         initializeParams:
                           items:
                             properties:
+                              enableConfidentialCompute:
+                                type: boolean
                               image:
                                 type: string
                               labels:
                                 additionalProperties:
                                   type: string
                                 type: object
+                              provisionedIops:
+                                type: number
+                              provisionedThroughput:
+                                type: number
                               resourceManagerTags:
                                 additionalProperties:
                                   type: string
                                 type: object
+                                x-kubernetes-map-type: granular
                               size:
                                 type: number
                               type:
@@ -728,13 +773,15 @@ spec:
                       type: object
                     type: array
                   hostname:
-                    description: A unique name for the resource, required by GCE.
+                    description: |-
+                      A unique name for the resource, required by GCE.
                       Changing this forces a new resource to be created.
                     type: string
                   labels:
                     additionalProperties:
                       type: string
                     type: object
+                    x-kubernetes-map-type: granular
                   machineType:
                     type: string
                   metadata:
@@ -746,7 +793,8 @@ spec:
                   minCpuPlatform:
                     type: string
                   name:
-                    description: A unique name for the resource, required by GCE.
+                    description: |-
+                      A unique name for the resource, required by GCE.
                       Changing this forces a new resource to be created.
                     type: string
                   networkInterface:
@@ -760,9 +808,9 @@ spec:
                               networkTier:
                                 type: string
                               publicPtrDomainName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
@@ -772,12 +820,14 @@ spec:
                               ipCidrRange:
                                 type: string
                               subnetworkRangeName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
+                        internalIpv6PrefixLength:
+                          type: number
                         ipv6AccessConfig:
                           items:
                             properties:
@@ -786,29 +836,187 @@ spec:
                               externalIpv6PrefixLength:
                                 type: string
                               name:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                               networkTier:
                                 type: string
                               publicPtrDomainName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
+                        ipv6Address:
+                          type: string
+                        network:
+                          type: string
                         networkIp:
                           type: string
+                        networkRef:
+                          description: Reference to a Network in compute to populate
+                            network.
+                          properties:
+                            name:
+                              description: Name of the referenced object.
+                              type: string
+                            policy:
+                              description: Policies for referencing.
+                              properties:
+                                resolution:
+                                  default: Required
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
+                                  enum:
+                                  - Required
+                                  - Optional
+                                  type: string
+                                resolve:
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
+                                  enum:
+                                  - Always
+                                  - IfNotPresent
+                                  type: string
+                              type: object
+                          required:
+                          - name
+                          type: object
+                        networkSelector:
+                          description: Selector for a Network in compute to populate
+                            network.
+                          properties:
+                            matchControllerRef:
+                              description: |-
+                                MatchControllerRef ensures an object with the same controller reference
+                                as the selecting object is selected.
+                              type: boolean
+                            matchLabels:
+                              additionalProperties:
+                                type: string
+                              description: MatchLabels ensures an object with matching
+                                labels is selected.
+                              type: object
+                            policy:
+                              description: Policies for selection.
+                              properties:
+                                resolution:
+                                  default: Required
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
+                                  enum:
+                                  - Required
+                                  - Optional
+                                  type: string
+                                resolve:
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
+                                  enum:
+                                  - Always
+                                  - IfNotPresent
+                                  type: string
+                              type: object
+                          type: object
                         nicType:
                           type: string
                         queueCount:
                           type: number
                         stackType:
                           type: string
+                        subnetwork:
+                          type: string
                         subnetworkProject:
                           type: string
+                        subnetworkRef:
+                          description: Reference to a Subnetwork in compute to populate
+                            subnetwork.
+                          properties:
+                            name:
+                              description: Name of the referenced object.
+                              type: string
+                            policy:
+                              description: Policies for referencing.
+                              properties:
+                                resolution:
+                                  default: Required
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
+                                  enum:
+                                  - Required
+                                  - Optional
+                                  type: string
+                                resolve:
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
+                                  enum:
+                                  - Always
+                                  - IfNotPresent
+                                  type: string
+                              type: object
+                          required:
+                          - name
+                          type: object
+                        subnetworkSelector:
+                          description: Selector for a Subnetwork in compute to populate
+                            subnetwork.
+                          properties:
+                            matchControllerRef:
+                              description: |-
+                                MatchControllerRef ensures an object with the same controller reference
+                                as the selecting object is selected.
+                              type: boolean
+                            matchLabels:
+                              additionalProperties:
+                                type: string
+                              description: MatchLabels ensures an object with matching
+                                labels is selected.
+                              type: object
+                            policy:
+                              description: Policies for selection.
+                              properties:
+                                resolution:
+                                  default: Required
+                                  description: |-
+                                    Resolution specifies whether resolution of this reference is required.
+                                    The default is 'Required', which means the reconcile will fail if the
+                                    reference cannot be resolved. 'Optional' means this reference will be
+                                    a no-op if it cannot be resolved.
+                                  enum:
+                                  - Required
+                                  - Optional
+                                  type: string
+                                resolve:
+                                  description: |-
+                                    Resolve specifies when this reference should be resolved. The default
+                                    is 'IfNotPresent', which will attempt to resolve the reference only when
+                                    the corresponding field is not present. Use 'Always' to resolve the
+                                    reference on every reconcile.
+                                  enum:
+                                  - Always
+                                  - IfNotPresent
+                                  type: string
+                              type: object
+                          type: object
                       type: object
                     type: array
                   networkPerformanceConfig:
@@ -825,6 +1033,7 @@ spec:
                           additionalProperties:
                             type: string
                           type: object
+                          x-kubernetes-map-type: granular
                       type: object
                     type: array
                   project:
@@ -880,6 +1089,7 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                                x-kubernetes-list-type: set
                             type: object
                           type: array
                         onHostMaintenance:
@@ -893,6 +1103,11 @@ spec:
                   scratchDisk:
                     items:
                       properties:
+                        deviceName:
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
+                          type: string
                         interface:
                           type: string
                         size:
@@ -908,6 +1123,7 @@ spec:
                           items:
                             type: string
                           type: array
+                          x-kubernetes-list-type: set
                       type: object
                     type: array
                   shieldedInstanceConfig:
@@ -921,32 +1137,117 @@ spec:
                           type: boolean
                       type: object
                     type: array
+                  sourceInstanceTemplate:
+                    description: |-
+                      Name or self link of an instance
+                      template to create the instance based on. It is recommended to reference
+                      instance templates through their unique id (self_link_unique attribute).
+                    type: string
+                  sourceInstanceTemplateRef:
+                    description: Reference to a InstanceTemplate in compute to populate
+                      sourceInstanceTemplate.
+                    properties:
+                      name:
+                        description: Name of the referenced object.
+                        type: string
+                      policy:
+                        description: Policies for referencing.
+                        properties:
+                          resolution:
+                            default: Required
+                            description: |-
+                              Resolution specifies whether resolution of this reference is required.
+                              The default is 'Required', which means the reconcile will fail if the
+                              reference cannot be resolved. 'Optional' means this reference will be
+                              a no-op if it cannot be resolved.
+                            enum:
+                            - Required
+                            - Optional
+                            type: string
+                          resolve:
+                            description: |-
+                              Resolve specifies when this reference should be resolved. The default
+                              is 'IfNotPresent', which will attempt to resolve the reference only when
+                              the corresponding field is not present. Use 'Always' to resolve the
+                              reference on every reconcile.
+                            enum:
+                            - Always
+                            - IfNotPresent
+                            type: string
+                        type: object
+                    required:
+                    - name
+                    type: object
+                  sourceInstanceTemplateSelector:
+                    description: Selector for a InstanceTemplate in compute to populate
+                      sourceInstanceTemplate.
+                    properties:
+                      matchControllerRef:
+                        description: |-
+                          MatchControllerRef ensures an object with the same controller reference
+                          as the selecting object is selected.
+                        type: boolean
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: MatchLabels ensures an object with matching labels
+                          is selected.
+                        type: object
+                      policy:
+                        description: Policies for selection.
+                        properties:
+                          resolution:
+                            default: Required
+                            description: |-
+                              Resolution specifies whether resolution of this reference is required.
+                              The default is 'Required', which means the reconcile will fail if the
+                              reference cannot be resolved. 'Optional' means this reference will be
+                              a no-op if it cannot be resolved.
+                            enum:
+                            - Required
+                            - Optional
+                            type: string
+                          resolve:
+                            description: |-
+                              Resolve specifies when this reference should be resolved. The default
+                              is 'IfNotPresent', which will attempt to resolve the reference only when
+                              the corresponding field is not present. Use 'Always' to resolve the
+                              reference on every reconcile.
+                            enum:
+                            - Always
+                            - IfNotPresent
+                            type: string
+                        type: object
+                    type: object
                   tags:
                     items:
                       type: string
                     type: array
+                    x-kubernetes-list-type: set
                   zone:
-                    description: The zone that the machine should be created in. If
-                      not set, the provider zone is used.
+                    description: |-
+                      The zone that the machine should be created in. If not
+                      set, the provider zone is used.
                     type: string
                 type: object
               managementPolicies:
                 default:
                 - '*'
-                description: 'THIS IS AN ALPHA FIELD. Do not use it in production.
-                  It is not honored unless the relevant Crossplane feature flag is
-                  enabled, and may be changed or removed without notice. ManagementPolicies
-                  specify the array of actions Crossplane is allowed to take on the
-                  managed and external resources. This field is planned to replace
-                  the DeletionPolicy field in a future release. Currently, both could
-                  be set independently and non-default values would be honored if
-                  the feature flag is enabled. If both are custom, the DeletionPolicy
-                  field will be ignored. See the design doc for more information:
-                  https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
-                  and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md'
+                description: |-
+                  THIS IS A BETA FIELD. It is on by default but can be opted out
+                  through a Crossplane feature flag.
+                  ManagementPolicies specify the array of actions Crossplane is allowed to
+                  take on the managed and external resources.
+                  This field is planned to replace the DeletionPolicy field in a future
+                  release. Currently, both could be set independently and non-default
+                  values would be honored if the feature flag is enabled. If both are
+                  custom, the DeletionPolicy field will be ignored.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                  and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md
                 items:
-                  description: A ManagementAction represents an action that the Crossplane
-                    controllers can take on an external resource.
+                  description: |-
+                    A ManagementAction represents an action that the Crossplane controllers
+                    can take on an external resource.
                   enum:
                   - Observe
                   - Create
@@ -959,9 +1260,10 @@ spec:
               providerConfigRef:
                 default:
                   name: default
-                description: ProviderConfigReference specifies how the provider that
-                  will be used to create, observe, update, and delete this managed
-                  resource should be configured.
+                description: |-
+                  ProviderConfigReference specifies how the provider that will be used to
+                  create, observe, update, and delete this managed resource should be
+                  configured.
                 properties:
                   name:
                     description: Name of the referenced object.
@@ -971,57 +1273,21 @@ spec:
                     properties:
                       resolution:
                         default: Required
-                        description: Resolution specifies whether resolution of this
-                          reference is required. The default is 'Required', which
-                          means the reconcile will fail if the reference cannot be
-                          resolved. 'Optional' means this reference will be a no-op
-                          if it cannot be resolved.
+                        description: |-
+                          Resolution specifies whether resolution of this reference is required.
+                          The default is 'Required', which means the reconcile will fail if the
+                          reference cannot be resolved. 'Optional' means this reference will be
+                          a no-op if it cannot be resolved.
                         enum:
                         - Required
                         - Optional
                         type: string
                       resolve:
-                        description: Resolve specifies when this reference should
-                          be resolved. The default is 'IfNotPresent', which will attempt
-                          to resolve the reference only when the corresponding field
-                          is not present. Use 'Always' to resolve the reference on
-                          every reconcile.
-                        enum:
-                        - Always
-                        - IfNotPresent
-                        type: string
-                    type: object
-                required:
-                - name
-                type: object
-              providerRef:
-                description: 'ProviderReference specifies the provider that will be
-                  used to create, observe, update, and delete this managed resource.
-                  Deprecated: Please use ProviderConfigReference, i.e. `providerConfigRef`'
-                properties:
-                  name:
-                    description: Name of the referenced object.
-                    type: string
-                  policy:
-                    description: Policies for referencing.
-                    properties:
-                      resolution:
-                        default: Required
-                        description: Resolution specifies whether resolution of this
-                          reference is required. The default is 'Required', which
-                          means the reconcile will fail if the reference cannot be
-                          resolved. 'Optional' means this reference will be a no-op
-                          if it cannot be resolved.
-                        enum:
-                        - Required
-                        - Optional
-                        type: string
-                      resolve:
-                        description: Resolve specifies when this reference should
-                          be resolved. The default is 'IfNotPresent', which will attempt
-                          to resolve the reference only when the corresponding field
-                          is not present. Use 'Always' to resolve the reference on
-                          every reconcile.
+                        description: |-
+                          Resolve specifies when this reference should be resolved. The default
+                          is 'IfNotPresent', which will attempt to resolve the reference only when
+                          the corresponding field is not present. Use 'Always' to resolve the
+                          reference on every reconcile.
                         enum:
                         - Always
                         - IfNotPresent
@@ -1031,17 +1297,19 @@ spec:
                 - name
                 type: object
               publishConnectionDetailsTo:
-                description: PublishConnectionDetailsTo specifies the connection secret
-                  config which contains a name, metadata and a reference to secret
-                  store config to which any connection details for this managed resource
-                  should be written. Connection details frequently include the endpoint,
-                  username, and password required to connect to the managed resource.
+                description: |-
+                  PublishConnectionDetailsTo specifies the connection secret config which
+                  contains a name, metadata and a reference to secret store config to
+                  which any connection details for this managed resource should be written.
+                  Connection details frequently include the endpoint, username,
+                  and password required to connect to the managed resource.
                 properties:
                   configRef:
                     default:
                       name: default
-                    description: SecretStoreConfigRef specifies which secret store
-                      config should be used for this ConnectionSecret.
+                    description: |-
+                      SecretStoreConfigRef specifies which secret store config should be used
+                      for this ConnectionSecret.
                     properties:
                       name:
                         description: Name of the referenced object.
@@ -1051,21 +1319,21 @@ spec:
                         properties:
                           resolution:
                             default: Required
-                            description: Resolution specifies whether resolution of
-                              this reference is required. The default is 'Required',
-                              which means the reconcile will fail if the reference
-                              cannot be resolved. 'Optional' means this reference
-                              will be a no-op if it cannot be resolved.
+                            description: |-
+                              Resolution specifies whether resolution of this reference is required.
+                              The default is 'Required', which means the reconcile will fail if the
+                              reference cannot be resolved. 'Optional' means this reference will be
+                              a no-op if it cannot be resolved.
                             enum:
                             - Required
                             - Optional
                             type: string
                           resolve:
-                            description: Resolve specifies when this reference should
-                              be resolved. The default is 'IfNotPresent', which will
-                              attempt to resolve the reference only when the corresponding
-                              field is not present. Use 'Always' to resolve the reference
-                              on every reconcile.
+                            description: |-
+                              Resolve specifies when this reference should be resolved. The default
+                              is 'IfNotPresent', which will attempt to resolve the reference only when
+                              the corresponding field is not present. Use 'Always' to resolve the
+                              reference on every reconcile.
                             enum:
                             - Always
                             - IfNotPresent
@@ -1080,21 +1348,22 @@ spec:
                       annotations:
                         additionalProperties:
                           type: string
-                        description: Annotations are the annotations to be added to
-                          connection secret. - For Kubernetes secrets, this will be
-                          used as "metadata.annotations". - It is up to Secret Store
-                          implementation for others store types.
+                        description: |-
+                          Annotations are the annotations to be added to connection secret.
+                          - For Kubernetes secrets, this will be used as "metadata.annotations".
+                          - It is up to Secret Store implementation for others store types.
                         type: object
                       labels:
                         additionalProperties:
                           type: string
-                        description: Labels are the labels/tags to be added to connection
-                          secret. - For Kubernetes secrets, this will be used as "metadata.labels".
-                          - It is up to Secret Store implementation for others store
-                          types.
+                        description: |-
+                          Labels are the labels/tags to be added to connection secret.
+                          - For Kubernetes secrets, this will be used as "metadata.labels".
+                          - It is up to Secret Store implementation for others store types.
                         type: object
                       type:
-                        description: Type is the SecretType for the connection secret.
+                        description: |-
+                          Type is the SecretType for the connection secret.
                           - Only valid for Kubernetes Secret Stores.
                         type: string
                     type: object
@@ -1105,14 +1374,15 @@ spec:
                 - name
                 type: object
               writeConnectionSecretToRef:
-                description: WriteConnectionSecretToReference specifies the namespace
-                  and name of a Secret to which any connection details for this managed
-                  resource should be written. Connection details frequently include
-                  the endpoint, username, and password required to connect to the
-                  managed resource. This field is planned to be replaced in a future
-                  release in favor of PublishConnectionDetailsTo. Currently, both
-                  could be set independently and connection details would be published
-                  to both without affecting each other.
+                description: |-
+                  WriteConnectionSecretToReference specifies the namespace and name of a
+                  Secret to which any connection details for this managed resource should
+                  be written. Connection details frequently include the endpoint, username,
+                  and password required to connect to the managed resource.
+                  This field is planned to be replaced in a future release in favor of
+                  PublishConnectionDetailsTo. Currently, both could be set independently
+                  and connection details would be published to both without affecting
+                  each other.
                 properties:
                   name:
                     description: Name of the secret.
@@ -1128,10 +1398,10 @@ spec:
             - forProvider
             type: object
             x-kubernetes-validations:
-            - message: name is a required parameter
+            - message: spec.forProvider.name is a required parameter
               rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
                 || ''Update'' in self.managementPolicies) || has(self.forProvider.name)
-                || has(self.initProvider.name)'
+                || (has(self.initProvider) && has(self.initProvider.name))'
           status:
             description: InstanceFromTemplateStatus defines the observed state of
               InstanceFromTemplate.
@@ -1156,8 +1426,9 @@ spec:
                     items:
                       properties:
                         deviceName:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         diskEncryptionKeyRaw:
                           type: string
@@ -1178,24 +1449,32 @@ spec:
                           description: Default is 6 minutes.
                           type: boolean
                         deviceName:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         diskEncryptionKeySha256:
                           type: string
                         initializeParams:
                           items:
                             properties:
+                              enableConfidentialCompute:
+                                type: boolean
                               image:
                                 type: string
                               labels:
                                 additionalProperties:
                                   type: string
                                 type: object
+                              provisionedIops:
+                                type: number
+                              provisionedThroughput:
+                                type: number
                               resourceManagerTags:
                                 additionalProperties:
                                   type: string
                                 type: object
+                                x-kubernetes-map-type: granular
                               size:
                                 type: number
                               type:
@@ -1229,6 +1508,11 @@ spec:
                     type: string
                   desiredStatus:
                     type: string
+                  effectiveLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                    x-kubernetes-map-type: granular
                   enableDisplay:
                     type: boolean
                   guestAccelerator:
@@ -1241,7 +1525,8 @@ spec:
                       type: object
                     type: array
                   hostname:
-                    description: A unique name for the resource, required by GCE.
+                    description: |-
+                      A unique name for the resource, required by GCE.
                       Changing this forces a new resource to be created.
                     type: string
                   id:
@@ -1254,6 +1539,7 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                    x-kubernetes-map-type: granular
                   machineType:
                     type: string
                   metadata:
@@ -1267,7 +1553,8 @@ spec:
                   minCpuPlatform:
                     type: string
                   name:
-                    description: A unique name for the resource, required by GCE.
+                    description: |-
+                      A unique name for the resource, required by GCE.
                       Changing this forces a new resource to be created.
                     type: string
                   networkInterface:
@@ -1281,9 +1568,9 @@ spec:
                               networkTier:
                                 type: string
                               publicPtrDomainName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
@@ -1293,12 +1580,14 @@ spec:
                               ipCidrRange:
                                 type: string
                               subnetworkRangeName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
+                        internalIpv6PrefixLength:
+                          type: number
                         ipv6AccessConfig:
                           items:
                             properties:
@@ -1307,24 +1596,27 @@ spec:
                               externalIpv6PrefixLength:
                                 type: string
                               name:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                               networkTier:
                                 type: string
                               publicPtrDomainName:
-                                description: A unique name for the resource, required
-                                  by GCE. Changing this forces a new resource to be
-                                  created.
+                                description: |-
+                                  A unique name for the resource, required by GCE.
+                                  Changing this forces a new resource to be created.
                                 type: string
                             type: object
                           type: array
                         ipv6AccessType:
                           type: string
+                        ipv6Address:
+                          type: string
                         name:
-                          description: A unique name for the resource, required by
-                            GCE. Changing this forces a new resource to be created.
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
                           type: string
                         network:
                           type: string
@@ -1356,6 +1648,7 @@ spec:
                           additionalProperties:
                             type: string
                           type: object
+                          x-kubernetes-map-type: granular
                       type: object
                     type: array
                   project:
@@ -1411,6 +1704,7 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                                x-kubernetes-list-type: set
                             type: object
                           type: array
                         onHostMaintenance:
@@ -1424,6 +1718,11 @@ spec:
                   scratchDisk:
                     items:
                       properties:
+                        deviceName:
+                          description: |-
+                            A unique name for the resource, required by GCE.
+                            Changing this forces a new resource to be created.
+                          type: string
                         interface:
                           type: string
                         size:
@@ -1441,6 +1740,7 @@ spec:
                           items:
                             type: string
                           type: array
+                          x-kubernetes-list-type: set
                       type: object
                     type: array
                   shieldedInstanceConfig:
@@ -1455,19 +1755,27 @@ spec:
                       type: object
                     type: array
                   sourceInstanceTemplate:
-                    description: Name or self link of an instance template to create
-                      the instance based on. It is recommended to reference instance
-                      templates through their unique id (self_link_unique attribute).
+                    description: |-
+                      Name or self link of an instance
+                      template to create the instance based on. It is recommended to reference
+                      instance templates through their unique id (self_link_unique attribute).
                     type: string
                   tags:
                     items:
                       type: string
                     type: array
+                    x-kubernetes-list-type: set
                   tagsFingerprint:
                     type: string
+                  terraformLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                    x-kubernetes-map-type: granular
                   zone:
-                    description: The zone that the machine should be created in. If
-                      not set, the provider zone is used.
+                    description: |-
+                      The zone that the machine should be created in. If not
+                      set, the provider zone is used.
                     type: string
                 type: object
               conditions:
@@ -1476,14 +1784,23 @@ spec:
                   description: A Condition that may apply to a resource.
                   properties:
                     lastTransitionTime:
-                      description: LastTransitionTime is the last time this condition
-                        transitioned from one status to another.
+                      description: |-
+                        LastTransitionTime is the last time this condition transitioned from one
+                        status to another.
                       format: date-time
                       type: string
                     message:
-                      description: A Message containing details about this condition's
-                        last transition from one status to another, if any.
+                      description: |-
+                        A Message containing details about this condition's last transition from
+                        one status to another, if any.
                       type: string
+                    observedGeneration:
+                      description: |-
+                        ObservedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      type: integer
                     reason:
                       description: A Reason for this condition's last transition from
                         one status to another.
@@ -1493,8 +1810,9 @@ spec:
                         False, or Unknown?
                       type: string
                     type:
-                      description: Type of this condition. At most one of each condition
-                        type may apply to a resource at any point in time.
+                      description: |-
+                        Type of this condition. At most one of each condition type may apply to
+                        a resource at any point in time.
                       type: string
                   required:
                   - lastTransitionTime
@@ -1503,6 +1821,16 @@ spec:
                   - type
                   type: object
                 type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the latest metadata.generation
+                  which resulted in either a ready state, or stalled due to error
+                  it can not recover from without human intervention.
+                format: int64
+                type: integer
             type: object
         required:
         - spec

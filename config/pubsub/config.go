@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package pubsub
 
-import "github.com/upbound/upjet/pkg/config"
+import "github.com/crossplane/upjet/pkg/config"
 
 // Configure configures individual resources by adding custom
 // ResourceConfigurators.
@@ -11,7 +15,7 @@ func Configure(p *config.Provider) {
 
 	p.AddResourceConfigurator("google_pubsub_lite_subscription", func(r *config.Resource) {
 		r.References["topic"] = config.Reference{
-			Type: "LiteTopic",
+			TerraformName: "google_pubsub_lite_topic",
 		}
 		r.Sensitive.AdditionalConnectionDetailsFn = pubsubLiteConnectionDetails
 		config.MarkAsRequired(r.TerraformResource, "zone")
@@ -19,7 +23,7 @@ func Configure(p *config.Provider) {
 
 	p.AddResourceConfigurator("google_pubsub_lite_topic", func(r *config.Resource) {
 		r.References["reservation_config.throughput_reservation"] = config.Reference{
-			Type: "LiteReservation",
+			TerraformName: "google_pubsub_lite_reservation",
 		}
 		r.Sensitive.AdditionalConnectionDetailsFn = pubsubLiteConnectionDetails
 		config.MarkAsRequired(r.TerraformResource, "zone")
@@ -28,14 +32,15 @@ func Configure(p *config.Provider) {
 	})
 	p.AddResourceConfigurator("google_pubsub_subscription", func(r *config.Resource) {
 		r.References["topic"] = config.Reference{
-			Type: "Topic",
+			TerraformName: "google_pubsub_topic",
 		}
 		r.Sensitive.AdditionalConnectionDetailsFn = pubsubConnectionDetails
+		delete(r.References, "cloud_storage_config.bucket")
 	})
 
 	p.AddResourceConfigurator("google_pubsub_subscription_iam_member", func(r *config.Resource) {
 		r.References["subscription"] = config.Reference{
-			Type: "Subscription",
+			TerraformName: "google_pubsub_subscription",
 		}
 	})
 
@@ -45,7 +50,7 @@ func Configure(p *config.Provider) {
 
 	p.AddResourceConfigurator("google_pubsub_topic_iam_member", func(r *config.Resource) {
 		r.References["topic"] = config.Reference{
-			Type: "Topic",
+			TerraformName: "google_pubsub_topic",
 		}
 	})
 }

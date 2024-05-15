@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 apiVersion: gkehub.gcp.upbound.io/v1beta1
 kind: Membership
 metadata:
@@ -8,6 +12,7 @@ metadata:
   name: membership
 spec:
   forProvider:
+    location: us-central1
     endpoint:
     - gkeCluster:
       - resourceLinkSelector:
@@ -26,6 +31,7 @@ metadata:
   name: membership
 spec:
   forProvider:
+    deletionProtection: false
     initialNodeCount: 2
     location: us-central1-a
     nodeConfig:

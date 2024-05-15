@@ -1,13 +1,17 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package config
 
 import (
 	"regexp"
 	"strings"
 
+	tjconfig "github.com/crossplane/upjet/pkg/config"
+	"github.com/crossplane/upjet/pkg/types/name"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
-	tjconfig "github.com/upbound/upjet/pkg/config"
-	"github.com/upbound/upjet/pkg/types/name"
 )
 
 // VersionV1Beta1 is used to signify that the resource has been tested and external name configured
@@ -70,6 +74,7 @@ var groupMap = map[string]GroupKindCalculator{
 	"google_assured_workloads.+":            ReplaceGroupWords("", 2),
 	"google_binary_authorization.+":         ReplaceGroupWords("", 2),
 	"google_container_analysis.+":           ReplaceGroupWords("", 2),
+	"google_container_attached.+":           ReplaceGroupWords("", 2),
 	"google_container_aws.+":                ReplaceGroupWords("", 2),
 	"google_container_azure.+":              ReplaceGroupWords("", 2),
 	"google_deployment_manager.+":           ReplaceGroupWords("", 2),

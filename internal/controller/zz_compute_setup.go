@@ -1,13 +1,13 @@
-/*
-Copyright 2021 Upbound Inc.
-*/
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: Apache-2.0
 
 package controller
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/upbound/upjet/pkg/controller"
+	"github.com/crossplane/upjet/pkg/controller"
 
 	address "github.com/upbound/provider-gcp/internal/controller/compute/address"
 	attacheddisk "github.com/upbound/provider-gcp/internal/controller/compute/attacheddisk"
@@ -65,6 +65,7 @@ import (
 	regiondiskresourcepolicyattachment "github.com/upbound/provider-gcp/internal/controller/compute/regiondiskresourcepolicyattachment"
 	regionhealthcheck "github.com/upbound/provider-gcp/internal/controller/compute/regionhealthcheck"
 	regioninstancegroupmanager "github.com/upbound/provider-gcp/internal/controller/compute/regioninstancegroupmanager"
+	regionnetworkendpoint "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkendpoint"
 	regionnetworkendpointgroup "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkendpointgroup"
 	regionnetworkfirewallpolicy "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkfirewallpolicy"
 	regionnetworkfirewallpolicyassociation "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkfirewallpolicyassociation"
@@ -72,6 +73,7 @@ import (
 	regionsslcertificate "github.com/upbound/provider-gcp/internal/controller/compute/regionsslcertificate"
 	regiontargethttpproxy "github.com/upbound/provider-gcp/internal/controller/compute/regiontargethttpproxy"
 	regiontargethttpsproxy "github.com/upbound/provider-gcp/internal/controller/compute/regiontargethttpsproxy"
+	regiontargettcpproxy "github.com/upbound/provider-gcp/internal/controller/compute/regiontargettcpproxy"
 	regionurlmap "github.com/upbound/provider-gcp/internal/controller/compute/regionurlmap"
 	reservation "github.com/upbound/provider-gcp/internal/controller/compute/reservation"
 	resourcepolicy "github.com/upbound/provider-gcp/internal/controller/compute/resourcepolicy"
@@ -162,6 +164,7 @@ func Setup_compute(mgr ctrl.Manager, o controller.Options) error {
 		regiondiskresourcepolicyattachment.Setup,
 		regionhealthcheck.Setup,
 		regioninstancegroupmanager.Setup,
+		regionnetworkendpoint.Setup,
 		regionnetworkendpointgroup.Setup,
 		regionnetworkfirewallpolicy.Setup,
 		regionnetworkfirewallpolicyassociation.Setup,
@@ -169,6 +172,7 @@ func Setup_compute(mgr ctrl.Manager, o controller.Options) error {
 		regionsslcertificate.Setup,
 		regiontargethttpproxy.Setup,
 		regiontargethttpsproxy.Setup,
+		regiontargettcpproxy.Setup,
 		regionurlmap.Setup,
 		reservation.Setup,
 		resourcepolicy.Setup,

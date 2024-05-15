@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package cloudtasks
 
 import (
-	"github.com/upbound/upjet/pkg/config"
+	"github.com/crossplane/upjet/pkg/config"
 )
 
 // Configure configures individual resources by adding custom
@@ -9,7 +13,7 @@ import (
 func Configure(p *config.Provider) {
 	p.AddResourceConfigurator("google_cloud_tasks_queue", func(r *config.Resource) {
 		r.References["project"] = config.Reference{
-			Type: "github.com/upbound/provider-gcp/apis/cloudplatform/v1beta1.Project",
+			TerraformName: "google_project",
 		}
 		config.MarkAsRequired(r.TerraformResource, "location")
 	})

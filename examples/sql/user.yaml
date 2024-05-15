@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 apiVersion: sql.gcp.upbound.io/v1beta1
 kind: User
 metadata:
@@ -15,6 +19,9 @@ spec:
     instanceSelector:
       matchLabels:
         testing.upbound.io/example-name: example_instance
+  writeConnectionSecretToRef:
+    name: example-sql-db-user-secret
+    namespace: upbound-system
 
 ---
 

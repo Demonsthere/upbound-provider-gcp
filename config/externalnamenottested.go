@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package config
 
-import "github.com/upbound/upjet/pkg/config"
+import "github.com/crossplane/upjet/pkg/config"
 
 // ExternalNameNotTestedConfigs contains no-tested configurations for this
 // provider.
@@ -206,13 +210,6 @@ var ExternalNameNotTestedConfigs = map[string]config.ExternalName{
 	"google_logging_billing_account_exclusion": config.TemplatedStringAsIdentifier("name", "billingAccounts/{{ .parameters.billing_account }}/exclusions/{{ .external_name }}"),
 	// Billing account logging sinks can be imported using this format: billingAccounts/{{billing_account_id}}/sinks/{{sink_id}}
 	"google_logging_billing_account_sink": config.IdentifierFromProvider,
-	// This resource can be imported using the following format: folders/{{folder}}/locations/{{location}}/buckets/{{bucket_id}}
-	"google_logging_folder_bucket_config": config.TemplatedStringAsIdentifier("", "folders/{{ .parameters.folder }}/locations/{{ .parameters.location }}/buckets/{{ .parameters.bucket_id }}"),
-	// Folder-level logging exclusions can be imported using their URI
-	// folders/my-folder/exclusions/my-exclusion
-	"google_logging_folder_exclusion": config.TemplatedStringAsIdentifier("name", "folders/{{ .parameters.folder }}/exclusions/{{ .external_name }}"),
-	// Folder-level logging sinks can be imported using this format: folders/{{folder_id}}/sinks/{{name}}
-	"google_logging_folder_sink": config.TemplatedStringAsIdentifier("name", "folders/{{ .parameters.folder }}/sinks/{{ .external_name }}"),
 	// This resource can be imported using the following format: organizations/{{organization}}/locations/{{location}}/buckets/{{bucket_id}}
 	"google_logging_organization_bucket_config": config.TemplatedStringAsIdentifier("", "organizations/{{ .parameters.organization }}/locations/{{ .parameters.location }}/buckets/{{ .parameters.bucket_id }}"),
 	// Organization-level logging exclusions can be imported using their URI
@@ -290,10 +287,6 @@ var ExternalNameNotTestedConfigs = map[string]config.ExternalName{
 	// Imported by using the following projects/{{project}}/locations/{{location}}/functions/{{cloud_function}} roles/viewer user:jane@example.com
 	"google_cloudfunctions2_function_iam_member": config.TemplatedStringAsIdentifier("cloud_function", "projects/{{ .setup.configuration.project }}/locations/{{ .parameters.location }}/functions/{{ .external_name }} {{ .parameters.role }} {{ .parameters.member }}"),
 
-	// cloudiot
-	//
-	// Imported by using the following projects/{{project}}/locations/{{location}}/registries/{{device_registry}} roles/viewer user:jane@example.com
-	"google_cloudiot_registry_iam_member": config.TemplatedStringAsIdentifier("name", "projects/{{ .setup.configuration.project }}/locations/{{ .parameters.location }}/registries/{{ .external_name }} {{ .parameters.role }} {{ .parameters.member }}"),
 	// compute
 	//
 	// No import
@@ -316,11 +309,6 @@ var ExternalNameNotTestedConfigs = map[string]config.ExternalName{
 	"google_compute_snapshot": config.TemplatedStringAsIdentifier("name", "projects/{{ .setup.configuration.project }}/global/snapshots/{{ .external_name }}"),
 	// Imported by using the following projects/{{project}}/global/sslPolicies/{{name}}
 	"google_compute_ssl_policy": config.TemplatedStringAsIdentifier("name", "projects/{{ .setup.configuration.project }}/global/sslPolicies/{{ .external_name }}"),
-
-	// containerattached
-	//
-	// Imported by using the following projects/{{project}}/locations/{{location}}/attachedClusters/{{name}}
-	"google_container_attached_cluster": config.TemplatedStringAsIdentifier("name", "projects/{{ .setup.configuration.project }}/locations/{{ .parameters.location }}/attachedClusters/{{ .external_name }}"),
 
 	// datafusion
 	//
@@ -465,9 +453,4 @@ var ExternalNameNotTestedConfigs = map[string]config.ExternalName{
 	"google_tags_tag_value_iam_member": config.TemplatedStringAsIdentifier("tag_value", "tagValues/{{ .external_name }} {{ .parameters.role }} {{ .parameters.member }}"),
 	// Imported by using the following tagBindings/{{name}}
 	"google_tags_tag_binding": config.IdentifierFromProvider,
-
-	// vpcaccess
-	//
-	// Imported by using the following projects/{{project}}/locations/{{region}}/connectors/{{name}}
-	"google_vpc_access_connector": config.TemplatedStringAsIdentifier("name", "projects/{{ .setup.configuration.project }}/locations/{{ .parameters.region }}/connectors/{{ .external_name }}"),
 }

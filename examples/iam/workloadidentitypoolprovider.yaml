@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 apiVersion: iam.gcp.upbound.io/v1beta1
 kind: WorkloadIdentityPoolProvider
 metadata:
@@ -21,7 +25,7 @@ kind: WorkloadIdentityPool
 metadata:
   annotations:
     meta.upbound.io/example-id: iam/v1beta1/workloadidentitypoolprovider
-    upjet.upbound.io/manual-ntervention: "Needs permissions for Pool creation"
+    upjet.upbound.io/manual-intervention: "Needs permissions for Pool creation"
   labels:
     testing.upbound.io/example-name: identity-pool
   name: identity-pool

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package sql
 
 import (
@@ -6,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/upbound/upjet/pkg/config"
+	"github.com/crossplane/upjet/pkg/config"
 
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 
@@ -79,12 +83,12 @@ func Configure(p *config.Provider) { //nolint:gocyclo
 	})
 	p.AddResourceConfigurator("google_sql_database", func(r *config.Resource) {
 		r.References["instance"] = config.Reference{
-			Type: "DatabaseInstance",
+			TerraformName: "google_sql_database_instance",
 		}
 	})
 	p.AddResourceConfigurator("google_sql_source_representation_instance", func(r *config.Resource) {
 		r.References["instance"] = config.Reference{
-			Type: "DatabaseInstance",
+			TerraformName: "google_sql_database_instance",
 		}
 	})
 	p.AddResourceConfigurator("google_sql_user", func(r *config.Resource) {
@@ -111,29 +115,20 @@ func Configure(p *config.Provider) { //nolint:gocyclo
 		}
 
 		r.References["instance"] = config.Reference{
-			Type: "DatabaseInstance",
+			TerraformName: "google_sql_database_instance",
+		}
+
+		r.Sensitive.AdditionalConnectionDetailsFn = func(attr map[string]any) (map[string][]byte, error) {
+			conn := map[string][]byte{}
+			if a, ok := attr["password"].(string); ok {
+				conn["password"] = []byte(a)
+			}
+			return conn, nil
 		}
 	})
 	p.AddResourceConfigurator("google_sql_ssl_cert", func(r *config.Resource) {
-		r.ExternalName = config.IdentifierFromProvider
-		r.ExternalName.GetExternalNameFn = common.GetNameFromFullyQualifiedID
-		r.ExternalName.GetIDFn = func(_ context.Context, externalName string, parameters map[string]interface{}, providerConfig map[string]interface{}) (string, error) {
-			if externalName == "" {
-				return "", nil
-			}
-			project, err := common.GetField(providerConfig, common.KeyProject)
-			if err != nil {
-				return "", err
-			}
-			instance, err := common.GetField(parameters, "instance")
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("projects/%s/instances/%s/sslCerts/%s", project, instance, externalName), nil
-		}
-
 		r.References["instance"] = config.Reference{
-			Type: "DatabaseInstance",
+			TerraformName: "google_sql_database_instance",
 		}
 	})
 }

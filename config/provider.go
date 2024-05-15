@@ -1,26 +1,22 @@
-// Copyright 2022 Upbound Inc.
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package config
 
 import (
+	"context"
 	// Note(ezgidemirel): we are importing this to embed provider schema document
 	_ "embed"
 
-	tjconfig "github.com/upbound/upjet/pkg/config"
-	"github.com/upbound/upjet/pkg/registry/reference"
-	"github.com/upbound/upjet/pkg/types/name"
+	tjconfig "github.com/crossplane/upjet/pkg/config"
+	"github.com/crossplane/upjet/pkg/registry/reference"
+	conversiontfjson "github.com/crossplane/upjet/pkg/types/conversion/tfjson"
+	"github.com/crossplane/upjet/pkg/types/name"
+	tfjson "github.com/hashicorp/terraform-json"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-google/google/provider"
+	"github.com/pkg/errors"
 
 	"github.com/upbound/provider-gcp/config/accessapproval"
 	"github.com/upbound/provider-gcp/config/accesscontextmanager"
@@ -29,13 +25,13 @@ import (
 	"github.com/upbound/provider-gcp/config/bigtable"
 	composer "github.com/upbound/provider-gcp/config/cloudcomposer"
 	"github.com/upbound/provider-gcp/config/cloudfunctions"
-	"github.com/upbound/provider-gcp/config/cloudiot"
 	"github.com/upbound/provider-gcp/config/cloudplatform"
 	"github.com/upbound/provider-gcp/config/cloudrun"
 	"github.com/upbound/provider-gcp/config/cloudscheduler"
 	"github.com/upbound/provider-gcp/config/cloudtasks"
 	"github.com/upbound/provider-gcp/config/compute"
 	"github.com/upbound/provider-gcp/config/container"
+	"github.com/upbound/provider-gcp/config/containerattached"
 	"github.com/upbound/provider-gcp/config/containeraws"
 	"github.com/upbound/provider-gcp/config/containerazure"
 	"github.com/upbound/provider-gcp/config/dataflow"
@@ -49,6 +45,7 @@ import (
 	"github.com/upbound/provider-gcp/config/iap"
 	"github.com/upbound/provider-gcp/config/identityplatform"
 	"github.com/upbound/provider-gcp/config/kms"
+	"github.com/upbound/provider-gcp/config/logging"
 	"github.com/upbound/provider-gcp/config/monitoring"
 	"github.com/upbound/provider-gcp/config/notebooks"
 	"github.com/upbound/provider-gcp/config/oslogin"
@@ -136,24 +133,59 @@ var skipList = []string{
 	"google_endpoints_service_consumers_iam_binding",
 }
 
+// workaround for the TF Google v4.77.0-based no-fork release: We would like to
+// keep the types in the generated CRDs intact
+// (prevent number->int type replacements).
+func getProviderSchema(s string) (*schema.Provider, error) {
+	ps := tfjson.ProviderSchemas{}
+	if err := ps.UnmarshalJSON([]byte(s)); err != nil {
+		panic(err)
+	}
+	if len(ps.Schemas) != 1 {
+		return nil, errors.Errorf("there should exactly be 1 provider schema but there are %d", len(ps.Schemas))
+	}
+	var rs map[string]*tfjson.Schema
+	for _, v := range ps.Schemas {
+		rs = v.ResourceSchemas
+		break
+	}
+	return &schema.Provider{
+		ResourcesMap: conversiontfjson.GetV2ResourceMap(rs),
+	}, nil
+}
+
 // GetProvider returns provider configuration
-func GetProvider() *tjconfig.Provider {
+func GetProvider(_ context.Context, generationProvider bool) (*tjconfig.Provider, error) {
+	var p *schema.Provider
+	var err error
+	if generationProvider {
+		p, err = getProviderSchema(providerSchema)
+	} else {
+		p = provider.Provider()
+	}
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot get the Terraform provider schema with generation mode set to %t", generationProvider)
+	}
+
 	pc := tjconfig.NewProvider([]byte(providerSchema), resourcePrefix, modulePath, providerMetadata,
 		tjconfig.WithDefaultResourceOptions(
 			groupOverrides(),
 			externalNameConfig(),
 			defaultVersion(),
-			externalNameConfigurations(),
+			resourceConfigurator(),
 			descriptionOverrides(),
 		),
 		tjconfig.WithRootGroup("gcp.upbound.io"),
 		tjconfig.WithShortName("gcp"),
 		// Comment out the following line to generate all resources.
-		tjconfig.WithIncludeList(resourcesWithExternalNameConfig()),
+		tjconfig.WithIncludeList(resourceList(cliReconciledExternalNameConfigs)),
+		tjconfig.WithTerraformPluginSDKIncludeList(resourceList(terraformPluginSDKExternalNameConfigs)),
 		tjconfig.WithReferenceInjectors([]tjconfig.ReferenceInjector{reference.NewInjector(modulePath)}),
 		tjconfig.WithSkipList(skipList),
 		tjconfig.WithFeaturesPackage("internal/features"),
-		tjconfig.WithMainTemplate(hack.MainTemplate))
+		tjconfig.WithMainTemplate(hack.MainTemplate),
+		tjconfig.WithTerraformProvider(p),
+	)
 
 	for _, configure := range []func(provider *tjconfig.Provider){
 		accessapproval.Configure,
@@ -161,11 +193,11 @@ func GetProvider() *tjconfig.Provider {
 		bigtable.Configure,
 		composer.Configure,
 		cloudfunctions.Configure,
-		cloudiot.Configure,
 		cloudplatform.Configure,
 		cloudrun.Configure,
 		cloudscheduler.Configure,
 		cloudtasks.Configure,
+		containerattached.Configure,
 		containeraws.Configure,
 		containerazure.Configure,
 		compute.Configure,
@@ -178,6 +210,7 @@ func GetProvider() *tjconfig.Provider {
 		gameservices.Configure,
 		iap.Configure,
 		identityplatform.Configure,
+		logging.Configure,
 		kms.Configure,
 		notebooks.Configure,
 		privateca.Configure,
@@ -205,15 +238,15 @@ func GetProvider() *tjconfig.Provider {
 	}
 
 	pc.ConfigureResources()
-	return pc
+	return pc, nil
 }
 
-// resourcesWithExternalNameConfig returns the list of resources that have external
-// name configured in ExternalNameConfigs table.
-func resourcesWithExternalNameConfig() []string {
-	l := make([]string, len(externalNameConfigs))
+// resourceList returns the list of resources that have external
+// name configured in the specified table.
+func resourceList(t map[string]tjconfig.ExternalName) []string {
+	l := make([]string, len(t))
 	i := 0
-	for n := range externalNameConfigs {
+	for n := range t {
 		// Expected format is regex and we'd like to have exact matches.
 		l[i] = n + "$"
 		i++

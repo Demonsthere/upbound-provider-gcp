@@ -1,13 +1,13 @@
-/*
-Copyright 2021 Upbound Inc.
-*/
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: Apache-2.0
 
 package controller
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/upbound/upjet/pkg/controller"
+	"github.com/crossplane/upjet/pkg/controller"
 
 	accesslevel "github.com/upbound/provider-gcp/internal/controller/accesscontextmanager/accesslevel"
 	accesslevelcondition "github.com/upbound/provider-gcp/internal/controller/accesscontextmanager/accesslevelcondition"
@@ -75,8 +75,6 @@ import (
 	function "github.com/upbound/provider-gcp/internal/controller/cloudfunctions/function"
 	functioniammember "github.com/upbound/provider-gcp/internal/controller/cloudfunctions/functioniammember"
 	functioncloudfunctions2 "github.com/upbound/provider-gcp/internal/controller/cloudfunctions2/function"
-	device "github.com/upbound/provider-gcp/internal/controller/cloudiot/device"
-	registry "github.com/upbound/provider-gcp/internal/controller/cloudiot/registry"
 	folder "github.com/upbound/provider-gcp/internal/controller/cloudplatform/folder"
 	folderiammember "github.com/upbound/provider-gcp/internal/controller/cloudplatform/folderiammember"
 	organizationiamauditconfig "github.com/upbound/provider-gcp/internal/controller/cloudplatform/organizationiamauditconfig"
@@ -157,6 +155,7 @@ import (
 	regiondiskresourcepolicyattachment "github.com/upbound/provider-gcp/internal/controller/compute/regiondiskresourcepolicyattachment"
 	regionhealthcheck "github.com/upbound/provider-gcp/internal/controller/compute/regionhealthcheck"
 	regioninstancegroupmanager "github.com/upbound/provider-gcp/internal/controller/compute/regioninstancegroupmanager"
+	regionnetworkendpoint "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkendpoint"
 	regionnetworkendpointgroup "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkendpointgroup"
 	regionnetworkfirewallpolicy "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkfirewallpolicy"
 	regionnetworkfirewallpolicyassociation "github.com/upbound/provider-gcp/internal/controller/compute/regionnetworkfirewallpolicyassociation"
@@ -164,6 +163,7 @@ import (
 	regionsslcertificate "github.com/upbound/provider-gcp/internal/controller/compute/regionsslcertificate"
 	regiontargethttpproxy "github.com/upbound/provider-gcp/internal/controller/compute/regiontargethttpproxy"
 	regiontargethttpsproxy "github.com/upbound/provider-gcp/internal/controller/compute/regiontargethttpsproxy"
+	regiontargettcpproxy "github.com/upbound/provider-gcp/internal/controller/compute/regiontargettcpproxy"
 	regionurlmap "github.com/upbound/provider-gcp/internal/controller/compute/regionurlmap"
 	reservationcompute "github.com/upbound/provider-gcp/internal/controller/compute/reservation"
 	resourcepolicy "github.com/upbound/provider-gcp/internal/controller/compute/resourcepolicy"
@@ -194,8 +194,9 @@ import (
 	vpntunnel "github.com/upbound/provider-gcp/internal/controller/compute/vpntunnel"
 	clustercontainer "github.com/upbound/provider-gcp/internal/controller/container/cluster"
 	nodepool "github.com/upbound/provider-gcp/internal/controller/container/nodepool"
-	registrycontainer "github.com/upbound/provider-gcp/internal/controller/container/registry"
+	registry "github.com/upbound/provider-gcp/internal/controller/container/registry"
 	note "github.com/upbound/provider-gcp/internal/controller/containeranalysis/note"
+	clustercontainerattached "github.com/upbound/provider-gcp/internal/controller/containerattached/cluster"
 	clustercontaineraws "github.com/upbound/provider-gcp/internal/controller/containeraws/cluster"
 	nodepoolcontaineraws "github.com/upbound/provider-gcp/internal/controller/containeraws/nodepool"
 	client "github.com/upbound/provider-gcp/internal/controller/containerazure/client"
@@ -274,6 +275,9 @@ import (
 	keyringiammember "github.com/upbound/provider-gcp/internal/controller/kms/keyringiammember"
 	keyringimportjob "github.com/upbound/provider-gcp/internal/controller/kms/keyringimportjob"
 	secretciphertext "github.com/upbound/provider-gcp/internal/controller/kms/secretciphertext"
+	folderbucketconfig "github.com/upbound/provider-gcp/internal/controller/logging/folderbucketconfig"
+	folderexclusion "github.com/upbound/provider-gcp/internal/controller/logging/folderexclusion"
+	foldersink "github.com/upbound/provider-gcp/internal/controller/logging/foldersink"
 	logview "github.com/upbound/provider-gcp/internal/controller/logging/logview"
 	metric "github.com/upbound/provider-gcp/internal/controller/logging/metric"
 	projectbucketconfig "github.com/upbound/provider-gcp/internal/controller/logging/projectbucketconfig"
@@ -348,6 +352,7 @@ import (
 	featurestore "github.com/upbound/provider-gcp/internal/controller/vertexai/featurestore"
 	featurestoreentitytype "github.com/upbound/provider-gcp/internal/controller/vertexai/featurestoreentitytype"
 	tensorboard "github.com/upbound/provider-gcp/internal/controller/vertexai/tensorboard"
+	connector "github.com/upbound/provider-gcp/internal/controller/vpcaccess/connector"
 	workflow "github.com/upbound/provider-gcp/internal/controller/workflows/workflow"
 )
 
@@ -421,8 +426,6 @@ func Setup_monolith(mgr ctrl.Manager, o controller.Options) error {
 		function.Setup,
 		functioniammember.Setup,
 		functioncloudfunctions2.Setup,
-		device.Setup,
-		registry.Setup,
 		folder.Setup,
 		folderiammember.Setup,
 		organizationiamauditconfig.Setup,
@@ -503,6 +506,7 @@ func Setup_monolith(mgr ctrl.Manager, o controller.Options) error {
 		regiondiskresourcepolicyattachment.Setup,
 		regionhealthcheck.Setup,
 		regioninstancegroupmanager.Setup,
+		regionnetworkendpoint.Setup,
 		regionnetworkendpointgroup.Setup,
 		regionnetworkfirewallpolicy.Setup,
 		regionnetworkfirewallpolicyassociation.Setup,
@@ -510,6 +514,7 @@ func Setup_monolith(mgr ctrl.Manager, o controller.Options) error {
 		regionsslcertificate.Setup,
 		regiontargethttpproxy.Setup,
 		regiontargethttpsproxy.Setup,
+		regiontargettcpproxy.Setup,
 		regionurlmap.Setup,
 		reservationcompute.Setup,
 		resourcepolicy.Setup,
@@ -540,8 +545,9 @@ func Setup_monolith(mgr ctrl.Manager, o controller.Options) error {
 		vpntunnel.Setup,
 		clustercontainer.Setup,
 		nodepool.Setup,
-		registrycontainer.Setup,
+		registry.Setup,
 		note.Setup,
+		clustercontainerattached.Setup,
 		clustercontaineraws.Setup,
 		nodepoolcontaineraws.Setup,
 		client.Setup,
@@ -620,6 +626,9 @@ func Setup_monolith(mgr ctrl.Manager, o controller.Options) error {
 		keyringiammember.Setup,
 		keyringimportjob.Setup,
 		secretciphertext.Setup,
+		folderbucketconfig.Setup,
+		folderexclusion.Setup,
+		foldersink.Setup,
 		logview.Setup,
 		metric.Setup,
 		projectbucketconfig.Setup,
@@ -694,6 +703,7 @@ func Setup_monolith(mgr ctrl.Manager, o controller.Options) error {
 		featurestore.Setup,
 		featurestoreentitytype.Setup,
 		tensorboard.Setup,
+		connector.Setup,
 		workflow.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {

@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package dataproc
 
 import (
+	"github.com/crossplane/upjet/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/upbound/upjet/pkg/config"
 )
 
 // Configure configures individual resources by adding custom

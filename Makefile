@@ -1,3 +1,8 @@
+
+# SPDX-FileCopyrightText: 2023 The Crossplane Authors <https://crossplane.io>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # ====================================================================================
 # Setup Project
 
@@ -5,14 +10,12 @@ PROVIDER_NAME := gcp
 PROJECT_NAME := provider-$(PROVIDER_NAME)
 PROJECT_REPO := github.com/upbound/$(PROJECT_NAME)
 
-export PROVIDER_NAME
 export TERRAFORM_VERSION := 1.5.5
+export TERRAFORM_PROVIDER_VERSION := 5.19.0
 export TERRAFORM_PROVIDER_SOURCE := hashicorp/google
-export TERRAFORM_PROVIDER_VERSION := 4.77.0
-export TERRAFORM_PROVIDER_DOWNLOAD_NAME := terraform-provider-google
-export TERRAFORM_PROVIDER_DOWNLOAD_URL_PREFIX := https://releases.hashicorp.com/terraform-provider-google/$(TERRAFORM_PROVIDER_VERSION)
 export TERRAFORM_PROVIDER_REPO ?= https://github.com/hashicorp/terraform-provider-google
 export TERRAFORM_DOCS_PATH ?= website/docs/r
+export PROVIDER_NAME
 
 PLATFORMS ?= linux_amd64 linux_arm64
 
@@ -45,7 +48,7 @@ GO_TEST_PARALLEL := $(shell echo $$(( $(NPROCS) / 2 )))
 # correctly.
 export GOPRIVATE = github.com/upbound/*
 
-GO_REQUIRED_VERSION ?= 1.19
+GO_REQUIRED_VERSION ?= 1.21
 # GOLANGCILINT_VERSION is inherited from build submodule by default.
 # Uncomment below if you need to override the version.
 # GOLANGCILINT_VERSION ?= 1.54.0
@@ -65,10 +68,13 @@ export SUBPACKAGES := $(SUBPACKAGES)
 # Setup Kubernetes tools
 
 KIND_VERSION = v0.15.0
-UPTEST_VERSION = v0.5.0
 # dependency for up
-UP_VERSION = v0.17.0
+UP_VERSION = v0.20.0
 UP_CHANNEL = stable
+UPTEST_VERSION = v0.8.0
+KUSTOMIZE_VERSION = v5.3.0
+YQ_VERSION = v4.40.5
+UXP_VERSION = 1.14.6-up.1
 
 export UP_VERSION := $(UP_VERSION)
 export UP_CHANNEL := $(UP_CHANNEL)
@@ -92,9 +98,13 @@ XPKG_REG_ORGS ?= xpkg.upbound.io/upbound
 # NOTE(hasheddan): skip promoting on xpkg.upbound.io as channel tags are
 # inferred.
 XPKG_REG_ORGS_NO_PROMOTE ?= xpkg.upbound.io/upbound
+XPKG_DIR = $(OUTPUT_DIR)/package
+XPKG_IGNORE = kustomization.yaml
 
 export XPKG_REG_ORGS := $(XPKG_REG_ORGS)
 export XPKG_REG_ORGS_NO_PROMOTE := $(XPKG_REG_ORGS_NO_PROMOTE)
+export XPKG_DIR := $(XPKG_DIR)
+export XPKG_IGNORE := $(XPKG_IGNORE)
 
 -include build/makelib/xpkg.mk
 
@@ -130,7 +140,7 @@ submodules:
 run: go.build
 	@$(INFO) Running Crossplane locally out-of-cluster . . .
 	@# To see other arguments that can be provided, run the command with --help instead
-	UPBOUND_CONTEXT="local" $(GO_OUT_DIR)/monolith --debug
+	UPBOUND_CONTEXT="local" $(GO_OUT_DIR)/monolith --debug --certs-dir=""
 
 # NOTE(hasheddan): we ensure up is installed prior to running platform-specific
 # build steps in parallel to avoid encountering an installation race condition.
@@ -188,20 +198,53 @@ uptest: $(UPTEST) $(KUBECTL) $(KUTTL)
 uptest-local:
 	@$(WARN) "this target is deprecated, please use 'make uptest' instead"
 
-build-monolith:
-	@$(MAKE) build SUBPACKAGES=monolith LOAD_MONOLITH=true
+build-provider.%:
+	@$(MAKE) build SUBPACKAGES="$$(tr ',' ' ' <<< $*)" LOAD_PACKAGES=true
 
-local-deploy: build-monolith controlplane.up local.xpkg.deploy.provider.$(PROJECT_NAME)-monolith
-	@$(INFO) running locally built provider
-	@$(KUBECTL) wait provider.pkg $(PROJECT_NAME)-monolith --for condition=Healthy --timeout 5m
-	@$(KUBECTL) -n upbound-system wait --for=condition=Available deployment --all --timeout=5m
-	@$(OK) running locally built provider
+XPKG_SKIP_DEP_RESOLUTION := true
+
+local-deploy.%: controlplane.up
+	@for api in $$(tr ',' ' ' <<< $*); do \
+		$(MAKE) local.xpkg.deploy.provider.$(PROJECT_NAME)-$${api}; \
+		$(INFO) running locally built $(PROJECT_NAME)-$${api}; \
+		$(KUBECTL) wait provider.pkg $(PROJECT_NAME)-$${api} --for condition=Healthy --timeout 5m; \
+		$(KUBECTL) -n upbound-system wait --for=condition=Available deployment --all --timeout=5m; \
+		$(OK) running locally built $(PROJECT_NAME)-$${api}; \
+	done || $(FAIL)
+
+local-deploy: build-provider.monolith local-deploy.monolith
 
 # This target requires the following environment variables to be set:
 # - UPTEST_CLOUD_CREDENTIALS, cloud credentials for the provider being tested, e.g. export UPTEST_CLOUD_CREDENTIALS=$(cat ~/gcp-sa.json)
 # - UPTEST_EXAMPLE_LIST, a comma-separated list of examples to test
 # - UPTEST_DATASOURCE_PATH, see https://github.com/upbound/uptest#injecting-dynamic-values-and-datasource
-e2e: local-deploy uptest
+family-e2e:
+	@$(INFO) Removing everything under $(XPKG_OUTPUT_DIR) and $(OUTPUT_DIR)/cache...
+	@rm -fR $(XPKG_OUTPUT_DIR)
+	@rm -fR $(OUTPUT_DIR)/cache
+	@(INSTALL_APIS=""; \
+	for m in $$(tr ',' ' ' <<< $${UPTEST_EXAMPLE_LIST}); do \
+	  	$(INFO) Processing the example manifest "$${m}"; \
+		for api in $$(sed -nE 's/^apiVersion: *(.+)/\1/p' "$${m}" | cut -d. -f1); do \
+		    if [[ $${api} == "v1" ]]; then \
+		        $(INFO) v1 is not a valid provider. Skipping...; \
+		        continue; \
+		    fi; \
+			if [[ $${INSTALL_APIS} =~ " $${api} " ]]; then \
+				$(INFO) Resource provider $(PROJECT_NAME)-$${api} is already installed. Skipping...; \
+				continue; \
+			fi; \
+			$(INFO) Installing the family resource $(PROJECT_NAME)-$${api} for the test file: $${m}; \
+			INSTALL_APIS="$${INSTALL_APIS} $${api} "; \
+		done; \
+	done; \
+	INSTALL_APIS="config,$$(tr ' ' ',' <<< $${INSTALL_APIS})"; \
+	INSTALL_APIS="$$(tr -s ',' <<< "$${INSTALL_APIS}")"; \
+	$(INFO) Building and deploying resource providers for the short API groups: $${INSTALL_APIS}; \
+	$(MAKE) build-provider.$${INSTALL_APIS} local-deploy.$${INSTALL_APIS}) || $(FAIL)
+	$(MAKE) uptest
+
+e2e: family-e2e
 
 # TODO: please move this to the common build submodule
 # once the use cases mature
@@ -213,7 +256,7 @@ crddiff: $(UPTEST)
 			continue ; \
 		fi ; \
 		echo "Checking $${crd} for breaking API changes..." ; \
-		changes_detected=$$($(UPTEST) crddiff revision <(git cat-file -p "$${GITHUB_BASE_REF}:$${crd}") "$${crd}" 2>&1) ; \
+		changes_detected=$$($(UPTEST) crddiff revision --enable-upjet-extensions <(git cat-file -p "$${GITHUB_BASE_REF}:$${crd}") "$${crd}" 2>&1) ; \
 		if [[ $$? != 0 ]] ; then \
 			printf "\033[31m"; echo "Breaking change detected!"; printf "\033[0m" ; \
 			echo "$${changes_detected}" ; \
@@ -265,4 +308,64 @@ go.cachedir:
 go.mod.cachedir:
 	@go env GOMODCACHE
 
-.PHONY: cobertura reviewable submodules fallthrough go.mod.cachedir go.cachedir run crds.clean $(TERRAFORM_PROVIDER_SCHEMA)
+DEP_CONSTRAINT ?= >= 0.0.0
+ifeq (-,$(findstring -,$(VERSION)))
+    DEP_CONSTRAINT = >= 0.0.0-0
+endif
+# Define SUBPACKAGES variable and set its value from PROVIDERS
+SUBPACKAGES := $(PROVIDERS)
+# Define XPKG_REG_ORGS variable and set its value from REPO
+XPKG_REG_ORGS := $(REPO)
+load-pkg: $(UP) build.all
+	@$(INFO) Loading the family providers into the Docker daemon: $(SUBPACKAGES)
+	@for p in $(PLATFORMS); do \
+		mkdir -p "$(XPKG_OUTPUT_DIR)/$$p"; \
+	done
+	@$(UP) xpkg batch --smaller-providers $$(echo -n "$(SUBPACKAGES) config" | tr ' ' ',') \
+		--family-base-image $(BUILD_REGISTRY)/$(PROJECT_NAME) \
+		--platform $(BATCH_PLATFORMS) \
+		--provider-name $(PROJECT_NAME) \
+		--family-package-url-format $(XPKG_REG_ORGS)/%s:$(VERSION) \
+		--package-repo-override monolith=$(PROJECT_NAME) --package-repo-override config=provider-family-$(PROVIDER_NAME) \
+		--provider-bin-root $(OUTPUT_DIR)/bin \
+		--output-dir $(XPKG_OUTPUT_DIR) \
+		--store-packages $$(echo -n "$(SUBPACKAGES) config" | tr ' ' ',') \
+		--build-only=true \
+		--examples-root $(ROOT_DIR)/examples \
+		--examples-group-override monolith=* --examples-group-override config=providerconfig \
+		--auth-ext $(ROOT_DIR)/package/auth.yaml \
+		--crd-root $(ROOT_DIR)/package/crds \
+		--crd-group-override monolith=* --crd-group-override config=$(PROVIDER_NAME) \
+		--package-metadata-template $(ROOT_DIR)/package/crossplane.yaml.tmpl \
+		--template-var XpkgRegOrg=$(XPKG_REG_ORGS) --template-var DepConstraint="$(DEP_CONSTRAINT)" --template-var ProviderName=$(PROVIDER_NAME) \
+		--push-retry 10 || $(FAIL)
+
+	@for p in $(PLATFORMS); do \
+		docker tag $$(docker load -qi $(XPKG_OUTPUT_DIR)/$$p/$(PROJECT_NAME)-config-$(VERSION).xpkg | awk -F: '{print $$3}') $(XPKG_REG_ORGS)/provider-family-$(PROVIDER_NAME)-$${p#"linux_"}:$(VERSION); \
+		echo Loaded the provider package "provider-family-$(PROVIDER_NAME)-$${p#"linux_"}:$(VERSION)" into the Docker daemon; \
+		for s in $(SUBPACKAGES); do \
+			if [ "$$s" = "config" ]; then \
+				continue; \
+			fi; \
+			docker tag $$(docker load -qi $(XPKG_OUTPUT_DIR)/$$p/$(PROJECT_NAME)-$$s-$(VERSION).xpkg | awk -F: '{print $$3}') $(XPKG_REG_ORGS)/$(PROJECT_NAME)-$$s-$${p#"linux_"}:$(VERSION); \
+			echo Loaded the provider package "$(PROJECT_NAME)-$$s-$${p#"linux_"}:$(VERSION)" into the Docker daemon; \
+		done \
+	done
+
+	@$(OK) Loaded the family providers into the Docker daemon: $(SUBPACKAGES)
+
+.PHONY: cobertura reviewable submodules fallthrough go.mod.cachedir go.cachedir run crds.clean $(TERRAFORM_PROVIDER_SCHEMA) load-pkg
+
+build.init: kustomize-crds
+
+kustomize-crds: output.init $(KUSTOMIZE) $(YQ)
+	@$(INFO) Kustomizing CRDs...
+	@rm -fr $(OUTPUT_DIR)/package || $(FAIL)
+	@cp -R package $(OUTPUT_DIR) && \
+	cd $(OUTPUT_DIR)/package/crds && \
+	$(KUSTOMIZE) create --autodetect || $(FAIL)
+	@export YQ=$(YQ) && \
+	XDG_CONFIG_HOME=$(PWD)/package $(KUSTOMIZE) build --enable-alpha-plugins $(OUTPUT_DIR)/package/kustomize -o $(OUTPUT_DIR)/package/crds.yaml || $(FAIL)
+	@$(OK) Kustomizing CRDs.
+
+.PHONY: kustomize-crds

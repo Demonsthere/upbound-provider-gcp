@@ -1,11 +1,17 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package container
 
 import (
 	"encoding/base64"
 	"net/url"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/crossplane/upjet/pkg/config"
 	"github.com/pkg/errors"
-	"github.com/upbound/upjet/pkg/config"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
@@ -27,6 +33,7 @@ func Configure(p *config.Provider) { //nolint:gocyclo
 				"workload_identity_config",
 				"addons_config.network_policy_config",
 				"addons_config.gcp_filestore_csi_driver_config",
+				"addons_config.gcs_fuse_csi_driver_config",
 				"addons_config.dns_cache_config",
 				"default_max_pods_per_node",
 				"cluster_autoscaling.enabled",
@@ -111,21 +118,62 @@ func Configure(p *config.Provider) { //nolint:gocyclo
 			}, nil
 		}
 		r.References["network"] = config.Reference{
-			Type:      "github.com/upbound/provider-gcp/apis/compute/v1beta1.Network",
-			Extractor: common.PathSelfLinkExtractor,
+			TerraformName: "google_compute_network",
+			Extractor:     common.PathSelfLinkExtractor,
 		}
 		r.References["subnetwork"] = config.Reference{
-			Type:      "github.com/upbound/provider-gcp/apis/compute/v1beta1.Subnetwork",
-			Extractor: common.PathSelfLinkExtractor,
+			TerraformName: "google_compute_subnetwork",
+			Extractor:     common.PathSelfLinkExtractor,
+		}
+		r.ServerSideApplyMergeStrategies["node_config"] = config.MergeStrategy{
+			ListMergeStrategy: config.ListMergeStrategy{
+				MergeStrategy: config.ListTypeMap,
+				ListMapKeys: config.ListMapKeys{
+					InjectedKey: config.InjectedKey{
+						Key:          "index",
+						DefaultValue: `"0"`,
+					},
+				},
+			},
 		}
 		config.MarkAsRequired(r.TerraformResource, "location")
 	})
 
 	p.AddResourceConfigurator("google_container_node_pool", func(r *config.Resource) {
 		r.Kind = "NodePool"
+		r.LateInitializer = config.LateInitializer{
+			IgnoredFields: []string{
+				"version",
+			},
+		}
 		r.References["cluster"] = config.Reference{
-			Type:      "Cluster",
-			Extractor: common.ExtractResourceIDFuncPath,
+			TerraformName: "google_container_cluster",
+			Extractor:     common.ExtractResourceIDFuncPath,
+		}
+
+		r.ServerSideApplyMergeStrategies["node_config"] = config.MergeStrategy{
+			ListMergeStrategy: config.ListMergeStrategy{
+				MergeStrategy: config.ListTypeMap,
+				ListMapKeys: config.ListMapKeys{
+					InjectedKey: config.InjectedKey{
+						Key:          "index",
+						DefaultValue: `"0"`,
+					},
+				},
+			},
+		}
+
+		r.TerraformCustomDiff = func(diff *terraform.InstanceDiff, _ *terraform.InstanceState, _ *terraform.ResourceConfig) (*terraform.InstanceDiff, error) {
+			if diff == nil || diff.Destroy {
+				return diff, nil
+			}
+			if ppDiff, ok := diff.Attributes["placement_policy.#"]; ok && ppDiff.Old == "" && ppDiff.New == "" {
+				delete(diff.Attributes, "placement_policy.#")
+			}
+			if asDiff, ok := diff.Attributes["autoscaling.#"]; ok && asDiff.Old == "" && asDiff.New == "" {
+				delete(diff.Attributes, "autoscaling.#")
+			}
+			return diff, nil
 		}
 	})
 }

@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package privateca
 
 import (
+	"github.com/crossplane/upjet/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/upbound/upjet/pkg/config"
 
 	"github.com/upbound/provider-gcp/config/common"
 )
@@ -12,27 +16,27 @@ import (
 func Configure(p *config.Provider) {
 	p.AddResourceConfigurator("google_privateca_ca_pool_iam_member", func(r *config.Resource) {
 		r.References["ca_pool"] = config.Reference{
-			Type:      "CAPool",
-			Extractor: common.ExtractResourceIDFuncPath,
+			TerraformName: "google_privateca_ca_pool",
+			Extractor:     common.ExtractResourceIDFuncPath,
 		}
 	})
 
 	p.AddResourceConfigurator("google_privateca_certificate_template_iam_member", func(r *config.Resource) {
 		r.References["certificate_template"] = config.Reference{
-			Type:      "CertificateTemplate",
-			Extractor: common.ExtractResourceIDFuncPath,
+			TerraformName: "google_privateca_certificate_template",
+			Extractor:     common.ExtractResourceIDFuncPath,
 		}
 	})
 
 	p.AddResourceConfigurator("google_privateca_certificate_authority", func(r *config.Resource) {
 		r.References["pool"] = config.Reference{
-			Type: "CAPool",
+			TerraformName: "google_privateca_ca_pool",
 		}
 	})
 
 	p.AddResourceConfigurator("google_privateca_certificate", func(r *config.Resource) {
 		r.References["pool"] = config.Reference{
-			Type: "CAPool",
+			TerraformName: "google_privateca_ca_pool",
 		}
 		r.TerraformResource.Schema["config"].Elem.(*schema.Resource).
 			Schema["public_key"].Elem.(*schema.Resource).

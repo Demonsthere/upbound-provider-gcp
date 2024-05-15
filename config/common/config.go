@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+//
+// SPDX-License-Identifier: CC0-1.0
+
 package common
 
 import (
@@ -5,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	jresource "github.com/upbound/upjet/pkg/resource"
+	jresource "github.com/crossplane/upjet/pkg/resource"
 
 	"github.com/crossplane/crossplane-runtime/pkg/fieldpath"
 	"github.com/crossplane/crossplane-runtime/pkg/reference"
@@ -21,6 +25,10 @@ const (
 	// ExtractResourceIDFuncPath holds the GCP resource ID extractor func name
 	ExtractResourceIDFuncPath = "github.com/upbound/provider-gcp/config/common.ExtractResourceID()"
 	ExtractProjectIDFuncPath  = "github.com/upbound/provider-gcp/config/common.ExtractProjectID()"
+	ExtractFolderIDFuncPath   = "github.com/upbound/provider-gcp/config/common.ExtractFolderID()"
+	// VersionV1Beta1 is used for resources that meet the v1beta1 criteria
+	// here: https://github.com/upbound/arch/pull/33
+	VersionV1Beta1 = "v1beta1"
 )
 
 var (
@@ -83,5 +91,15 @@ func ExtractProjectID() reference.ExtractValueFn {
 			return ""
 		}
 		return strings.TrimPrefix(tr.GetID(), "projects/")
+	}
+}
+
+func ExtractFolderID() reference.ExtractValueFn {
+	return func(mr resource.Managed) string {
+		tr, ok := mr.(jresource.Terraformed)
+		if !ok {
+			return ""
+		}
+		return strings.TrimPrefix(tr.GetID(), "folders/")
 	}
 }

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 The Crossplane Authors <https://crossplane.io>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 name: Backport
 
 on:
@@ -12,4 +16,4 @@ on:
 
 jobs:
   backport:
-    uses: upbound/uptest/.github/workflows/provider-backport.yml@main
+    uses: upbound/official-providers-ci/.github/workflows/provider-backport.yml@standard-runners
