@@ -67,8 +67,6 @@ resources:
   - crds/cloudfunctions.gcp.upbound.io_functioniammembers.yaml
   - crds/cloudfunctions.gcp.upbound.io_functions.yaml
   - crds/cloudfunctions2.gcp.upbound.io_functions.yaml
-  - crds/cloudiot.gcp.upbound.io_devices.yaml
-  - crds/cloudiot.gcp.upbound.io_registries.yaml
   - crds/cloudplatform.gcp.upbound.io_folderiammembers.yaml
   - crds/cloudplatform.gcp.upbound.io_folders.yaml
   - crds/cloudplatform.gcp.upbound.io_organizationiamauditconfigs.yaml
@@ -150,12 +148,14 @@ resources:
   - crds/compute.gcp.upbound.io_regionhealthchecks.yaml
   - crds/compute.gcp.upbound.io_regioninstancegroupmanagers.yaml
   - crds/compute.gcp.upbound.io_regionnetworkendpointgroups.yaml
+  - crds/compute.gcp.upbound.io_regionnetworkendpoints.yaml
   - crds/compute.gcp.upbound.io_regionnetworkfirewallpolicies.yaml
   - crds/compute.gcp.upbound.io_regionnetworkfirewallpolicyassociations.yaml
   - crds/compute.gcp.upbound.io_regionperinstanceconfigs.yaml
   - crds/compute.gcp.upbound.io_regionsslcertificates.yaml
   - crds/compute.gcp.upbound.io_regiontargethttpproxies.yaml
   - crds/compute.gcp.upbound.io_regiontargethttpsproxies.yaml
+  - crds/compute.gcp.upbound.io_regiontargettcpproxies.yaml
   - crds/compute.gcp.upbound.io_regionurlmaps.yaml
   - crds/compute.gcp.upbound.io_reservations.yaml
   - crds/compute.gcp.upbound.io_resourcepolicies.yaml
@@ -188,6 +188,7 @@ resources:
   - crds/container.gcp.upbound.io_nodepools.yaml
   - crds/container.gcp.upbound.io_registries.yaml
   - crds/containeranalysis.gcp.upbound.io_notes.yaml
+  - crds/containerattached.gcp.upbound.io_clusters.yaml
   - crds/containeraws.gcp.upbound.io_clusters.yaml
   - crds/containeraws.gcp.upbound.io_nodepools.yaml
   - crds/containerazure.gcp.upbound.io_clients.yaml
@@ -269,6 +270,9 @@ resources:
   - crds/kms.gcp.upbound.io_keyringimportjobs.yaml
   - crds/kms.gcp.upbound.io_keyrings.yaml
   - crds/kms.gcp.upbound.io_secretciphertexts.yaml
+  - crds/logging.gcp.upbound.io_folderbucketconfigs.yaml
+  - crds/logging.gcp.upbound.io_folderexclusions.yaml
+  - crds/logging.gcp.upbound.io_foldersinks.yaml
   - crds/logging.gcp.upbound.io_logviews.yaml
   - crds/logging.gcp.upbound.io_metrics.yaml
   - crds/logging.gcp.upbound.io_projectbucketconfigs.yaml
@@ -342,4 +346,5 @@ resources:
   - crds/vertexai.gcp.upbound.io_featurestoreentitytypes.yaml
   - crds/vertexai.gcp.upbound.io_featurestores.yaml
   - crds/vertexai.gcp.upbound.io_tensorboards.yaml
+  - crds/vpcaccess.gcp.upbound.io_connectors.yaml
   - crds/workflows.gcp.upbound.io_workflows.yaml
